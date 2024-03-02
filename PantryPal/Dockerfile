@@ -30,20 +30,17 @@ COPY package*.json .
 RUN sudo npm install && \
     sudo npm install -g react-native-cli
 
-# Set permissions
-RUN sudo chown -R mobiledevops:mobiledevops /home/mobiledevops
-
 # Expose ports
 EXPOSE 5037
 
 # Copy source code
 COPY . .
 
-#COPY docker-entrypoint.sh /usr/local/bin/
-
-#RUN sudo chmod +x /usr/local/bin/docker-entrypoint.sh
+# Set permissions
+RUN sudo chown -R mobiledevops:mobiledevops /home/mobiledevops
 
 # Start emulator
 #ENTRYPOINT ["docker-entrypoint.sh"]
 
+# Running container in interactive shell
 #docker run -it --rm -p 5037:5037 react-native-environment
