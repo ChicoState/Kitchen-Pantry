@@ -5,54 +5,37 @@
  * It is accessed from the HomeScreen.
  */
 
-// Necessary Imports
 import React, { useEffect, useState } from "react";
-import {
-  Button, 
-  FlatList,
-  ImageBackground,
-  Modal,
-  RefreshControl,
-  Text,
-  View,  
-} from "react-native";
-// This is the snackbar
+import {Button, FlatList, ImageBackground, Modal, RefreshControl, Text, View, ActivityIndicator} from "react-native";
+import {loadPantryData, deleteItem} from './PantryStorage.ts';  // storage methods 
 import Snackbar from "react-native-snackbar";
-// These are the storage methods used
-import {
-  loadPantryData,
-  deleteItem,
-} from './PantryStorage.ts';
-// Import the styles
+import image from './Images/pantryimage.jpg';     // backround image
 import styles from './Styles.js';
-// Load the background image
-import image from './Images/pantryimage.jpg';
 
-// This is the pantry screen
+/* Pantry Screen */
 const Pantry = ({navigation}) => {
-  // This is the state for the pantry data from the firebase
-  const [pantryData, setPantryData] = useState({});
-  // These are the states for the input fields for editing
-  const [name, setName] = useState('');
-  // This is for the state of the delete confirmation modal
-  const [isDialogVisible, setIsDialogVisible] = useState(false); 
-  
-  // Screen Functions
-  // Toggles the delete confirmation modal
-  const toggleDialog = () => {
-    setIsDialogVisible(!isDialogVisible);
-  };
+  const [isDialogVisible, setIsDialogVisible] = useState(false);  // delete conformation modal state
+  const [pantryData, setPantryData] = useState({});               // firebase pantry state
+  const [name, setName] = useState('');                           // editing input fields states
+  const [loading, setLoading] = useState(true);
+  /* Screen Functions */
+  const toggleDialog = () => {setIsDialogVisible(!isDialogVisible);}; // togles delete confirmation
 
   // This is to fetch the pantry data from the firebase
   const fetchData = async () => {
-    const pantryData = await loadPantryData();
-    setPantryData(pantryData);
+    setLoading(true); // Set loading to true when data fetching starts
+    const data = await loadPantryData();
+    setPantryData(data);
+    setLoading(false);
   };
 
   // This loads the pantry data from The firebase
   useEffect(() => {
-    fetchData();
-  }, [pantryData.key, pantryData.itemData]);
+    const fetchDataAsync = async () => {
+      await fetchData();
+    };
+    fetchDataAsync();
+  }, []);
 
   // This is the render method for the individual pantry items
   const renderItem = ({ item }) => (
@@ -113,92 +96,97 @@ const Pantry = ({navigation}) => {
       style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
     >
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        {/* If the pantry is empty, let the user know and let them add items */}
-        {pantryData.length === 0 ? (
+        {loading ? (
+          <ActivityIndicator size="large" />
+        ) : (
           <>
-            <View style={styles.itemContainer}>
-              <Text style={styles.text}>Your pantry is empty!</Text>
-              <Text style={styles.text}>You should add some items!</Text>
-            </View>
-            <Button title="Add Item" onPress={() => navigation.navigate("Add Item")} />
-          </>
-        ) :
-        // If the pantry is not empty, show the pantry items 
-        (
-          <>
-            <View style={styles.headerContainer}>
-              <Text style={styles.text}>Your Pantry</Text>
-            </View>
-            <View style={styles.pantryContainer}>
-              <FlatList
-                data={pantryData}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.key}
-              />
-              <View style={styles.buttonContainer2}>
-              <Button
-                  title="Home"
-                  color = 'grey'
-                  onPress={() => navigation.navigate("Home Screen")}
-                />
-                <Text>          </Text>
-                <Button 
-                  title="Add Item"
-                  color = 'green'
-                  onPress={() => navigation.navigate("Add Item")}
-                />
-                <Text>          </Text>
+            {/* Conditionally render the pantry items */}
+            {!pantryData || Object.keys(pantryData).length === 0 ? (
+              <View style={styles.itemContainer}>
+                <Text style={styles.text}>Your pantry is empty!</Text>
+                <Text style={styles.text}>You should add some items!</Text>
                 <Button
-                  title="Refresh"
-                  color='teal'
+                  title="Add Item"
                   onPress={() => {
-                    fetchData();
-                    Snackbar.show({
-                      text: 'Pantry refreshed',
-                      duration: Snackbar.LENGTH_SHORT,
-                    });
+                    navigation.navigate("Add Item");
                   }}
                 />
               </View>
-            </View>
+            ) : (
+              <View style={styles.pantryContainer}>
+                <FlatList
+                  data={pantryData}
+                  renderItem={renderItem}
+                  keyExtractor={(item) => item.key}
+                />
+              </View>
+            )}
+  
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={isDialogVisible}
+            >
+              {/* This is the delete item modal */}
+              <View style={styles.modalContainer}>
+                <Text style={styles.confirmationText}>
+                  Are you sure you want to delete the item from your pantry?
+                </Text>
+                <View style={styles.buttonContainer}>
+                  <Button title="No" color="red" onPress={toggleDialog} />
+                  <Text>          </Text>
+                  <Button
+                    title="Yes"
+                    color="green"
+                    onPress={async () => {
+                      if (name) {
+                        await deleteItem(name);
+                        fetchData(); // Refresh pantry data
+                        toggleDialog(); // Close the modal
+                        Snackbar.show({
+                          text: "Item deleted!",
+                          duration: Snackbar.LENGTH_SHORT,
+                        });
+                      }
+                    }}
+                  />
+                </View>
+              </View>
+            </Modal>
           </>
         )}
-      </View>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isDialogVisible}
-      >
-        {/* This is the delete item modal */}
-        <View style={styles.modalContainer}>
-          <Text style = {styles.confirmationText}>Are you sure you want to delete the item from your pantry?</Text>
-          <View style={styles.buttonContainer}>
-            <Button
-              title="No"
-              color = 'red'
-              onPress={toggleDialog}
-            />
-            <Text>          </Text>
-            <Button
-              title="Yes"
-              color = 'green'
-              onPress= { async () => {
-                if (name) {
-                  await deleteItem(name);
-                  fetchData(); // Refresh pantry data
-                  toggleDialog(); // Close the modal
-                  Snackbar.show({ // Show a snackbar
-                    text: "Item deleted!",
-                    duration: Snackbar.LENGTH_SHORT,
-                  });
-                }
-              }}
-            />
-          </View>
+  
+        {/* Buttons at the bottom of the screen */}
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+          <Button
+            title="Home"
+            color="grey"
+            onPress={() => navigation.navigate("Home Screen")}
+          />
+          <Text>          </Text>
+          <Button
+            title="Add Item"
+            color="green"
+            onPress={ () => {
+              navigation.navigate("Add Item");
+            }}
+          />
+          <Text>          </Text>
+          <Button
+            title="Refresh"
+            color="teal"
+            onPress={() => {
+              fetchData();
+              Snackbar.show({
+                text: 'Pantry refreshed',
+                duration: Snackbar.LENGTH_SHORT,
+              });
+            }}
+          />
         </View>
-      </Modal>
+      </View>
     </ImageBackground>
-  );
+  );  
 };
 
 export default Pantry;
