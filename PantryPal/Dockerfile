@@ -40,7 +40,7 @@ COPY . .
 RUN sudo chown -R mobiledevops:mobiledevops /home/mobiledevops
 
 # Start emulator
-#ENTRYPOINT ["docker-entrypoint.sh"]
+#ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
 
 # Running container in interactive shell
 #docker run -it --rm -p 5037:5037 react-native-environment
