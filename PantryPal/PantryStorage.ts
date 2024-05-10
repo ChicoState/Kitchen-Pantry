@@ -27,18 +27,14 @@ export const addItem = async (
   datePurchased: string,
   expiration: string,
   quantity: number,
-  fridge: Boolean,
-  freezer: Boolean,
-  inPantry: Boolean,
+ 
 ) => {
   // Create an object to store the data
   const itemData = {
     datePurchased: datePurchased,
     expiration: expiration,
     quantity: quantity,
-    fridge: fridge,
-    freezer: freezer,
-    pantry: inPantry,
+  
   };
 
   // Try to save the item to the storage

@@ -21,8 +21,7 @@ import Snackbar from 'react-native-snackbar';
 // Import the styles
 import styles from './Styles.js';
 import { Background } from '@react-navigation/elements';
-// Load the background image
-// import image from './Images/pantryimage.jpg';
+
 
 // This is the route type
 type MyParamList = ParamListBase & {
