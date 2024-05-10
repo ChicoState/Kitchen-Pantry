@@ -67,6 +67,7 @@ const MealScreen = ({ navigation }) => {
             <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', paddingTop: 20 }}>
             <SearchComponent setSearchQuery={setSearchQuery} handleSearch={handleSearch} />
 
+
                 <FlatList
                     data={searchResults}
                     keyExtractor={(item, index) => index.toString()}
