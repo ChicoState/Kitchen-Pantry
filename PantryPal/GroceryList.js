@@ -1,110 +1,208 @@
 import React, { useState } from 'react';
-import { View, Text, Button, TextInput, FlatList, ImageBackground, TouchableOpacity } from 'react-native';
-import image from './Images/italy.jpg';
+import {
+  Modal,
+  View,
+  Text,
+  Button,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
-const GroceryList = ({ navigation }) => {
+const GroceryList = () => {
   const [foodItem, setFoodItem] = useState('');
   const [quantity, setQuantity] = useState('');
   const [groceryList, setGroceryList] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleAddItem = () => {
-    if (foodItem.trim() !== '' && quantity.trim() !== '') {
-      const newItem = { name: foodItem, quantity: quantity, checked: false };
-      setGroceryList([...groceryList, newItem]);
+    if (foodItem.trim() !== '') {
+      const newItem = {
+        name: foodItem,
+        quantity: quantity.trim(),
+        checked: false,
+      };
+      setGroceryList((prevList) => [...prevList, newItem]);
       setFoodItem('');
       setQuantity('');
     }
   };
 
   const toggleCheckbox = (index) => {
-    const updatedList = [...groceryList];
-    updatedList[index].checked = !updatedList[index].checked;
-    setGroceryList(updatedList);
+    const newList = groceryList.map((item, idx) =>
+      idx === index ? { ...item, checked: !item.checked } : item
+    );
+    setGroceryList(newList);
   };
 
   const handleRemoveItem = (index) => {
-    const updatedList = [...groceryList];
-    updatedList.splice(index, 1);
-    setGroceryList(updatedList);
+    setGroceryList((prevList) => prevList.filter((_, idx) => idx !== index));
   };
 
-  const clearList = () => {
-    setGroceryList([]);
+  const handleDoneShopping = () => {
+    setGroceryList(groceryList.filter(item => !item.checked));
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setFoodItem('');
+    setQuantity('');
   };
 
   return (
-    <ImageBackground
-      source={image}
-      style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-    >
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <TextInput
-          placeholder="Enter a Food Item"
-          value={foodItem}
-          onChangeText={(text) => setFoodItem(text)}
-          style={{ borderWidth: 1, borderColor: 'gray', width: 200, padding: 8, marginVertical: 10, backgroundColor: 'white' }}
-        />
-        <TextInput
-          placeholder="Enter Quantity"
-          value={quantity}
-          onChangeText={(text) => setQuantity(text)}
-          style={{ borderWidth: 1, borderColor: 'gray', width: 200, padding: 8, marginBottom: 10, backgroundColor: 'white' }}
-          keyboardType="numeric"
-        />
-        <Button title="Add Item" onPress={handleAddItem} color="teal" />
-        <FlatList
-          data={groceryList}
-          numColumns = {1}
-          style={{ marginTop: 10 }}
-          renderItem={({ item, index }) => (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'white',
-                padding: 8,
-                borderRadius: 8,
-                marginRight: 5,
-                marginBottom: 8,
-              }}
+    <View style={styles.container}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={handleCloseModal}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={handleCloseModal}
             >
+              <Icon name="times" size={20} color="#333" />
+            </TouchableOpacity>
+            <TextInput
+              placeholder="Enter a Food Item"
+              value={foodItem}
+              onChangeText={setFoodItem}
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="Quantity (optional)"
+              value={quantity}
+              onChangeText={setQuantity}
+              style={styles.input}
+              keyboardType="numeric"
+            />
+            <Button title="Add Item" onPress={handleAddItem} color="teal" />
+          </View>
+        </View>
+      </Modal>
+      <FlatList
+        data={groceryList}
+        renderItem={({ item, index }) => (
+          <View style={styles.itemContainer}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
               <TouchableOpacity onPress={() => toggleCheckbox(index)}>
-                <View
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderWidth: 1,
-                    borderColor: 'gray',
-                    borderRadius: 4,
-                    marginRight: 8,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  {item.checked && (
-                    <View
-                      style={{
-                        width: 16,
-                        height: 16,
-                        backgroundColor: 'green',
-                        borderRadius: 2,
-                      }}
-                    />
-                  )}
+                <View style={styles.checkbox}>
+                  {item.checked && <View style={styles.checkedBox} />}
                 </View>
               </TouchableOpacity>
-              <Text>{item.name} : {item.quantity}</Text>
-              <View style={{ marginLeft: 7 }}>
-                <Button title="X" onPress={() => handleRemoveItem(index)} color="maroon" />
-              </View>
+              <Text style={{ marginLeft: 10, flex: 1 }}>
+                {item.quantity ? `${item.quantity} ${item.name}` : item.name}
+              </Text>
             </View>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-        />
-        <Button title="Clear List" onPress={clearList} color="teal" />
-      </View>
-    </ImageBackground>
+            <Button title="X" onPress={() => handleRemoveItem(index)} color="maroon" />
+          </View>
+        )}
+        keyExtractor={(_, index) => index.toString()}
+        ListFooterComponent={() =>
+          groceryList.length > 0 ? (
+            <Button title="Done Shopping" onPress={handleDoneShopping} color="green" />
+          ) : null
+        }
+        ListFooterComponentStyle={{ padding: 20 }}
+      />
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setModalVisible(true)}
+      >
+        <Icon name="plus" size={24} color="#fff" />
+      </TouchableOpacity>
+    </View>
   );
 };
+
+// Styles
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: 20,
+    backgroundColor: 'white',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    width: 200,
+    padding: 8,
+    marginBottom: 10,
+    backgroundColor: 'white',
+  },
+  addButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: 'teal',
+    borderRadius: 50,
+    padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  itemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'white',
+    padding: 8,
+    borderRadius: 8,
+    marginVertical: 4,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 4,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkedBox: {
+    width: 16,
+    height: 16,
+    backgroundColor: 'green',
+    borderRadius: 2,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 10,
+    top: 10,
+  },
+});
 
 export default GroceryList;

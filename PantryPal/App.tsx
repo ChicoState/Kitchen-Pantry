@@ -22,6 +22,7 @@ import MealScreen from './MealScreen.js';
 import Pantry from './Pantry.js';
 import AddItem from './AddItem.js';
 import EditItem from './EditItem';
+import RecipeDetails from './components/recipeDetailsComponent.js'
 
 /*
  * Create the navigation stacks for the app
@@ -91,6 +92,10 @@ const App = () => {
           name="Pantry"
           component={PantryStackScreen}
           //options={{headerShown: false}} // Hide header for PantryStackScreen
+        />
+        <Stack.Screen
+          name="RecipeDetails"
+          component={RecipeDetails}
         />
       </Stack.Navigator>
     </NavigationContainer>

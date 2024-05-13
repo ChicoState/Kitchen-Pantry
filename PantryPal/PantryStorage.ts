@@ -18,9 +18,6 @@ const pantry = 'Pantry';
  * @param datePurchased - date the item was purchased
  * @param expiration - expiration date of item
  * @param quantity - quantity of item
- * @param freezer - if the item is in the freezer
- * @param fridge - if the item is in the fridge
- * @param inPantry - if the item is in the pantry
  */
 export const addItem = async (
   name: string,
@@ -36,7 +33,6 @@ export const addItem = async (
     quantity: quantity,
   
   };
-
   // Try to save the item to the storage
   try {
     const userId = await getUserId();
@@ -67,18 +63,12 @@ export const deleteItem = async (name: string) => {
  * @param datePurchased - date the item was purchased, as a string
  * @param expiration - expiration date of item, as a string
  * @param quantity - quantity of item
- * @param freezer - if the item is in the freezer
- * @param fridge - if the item is in the fridge
- * @param inPantry - if the item is in the pantry
  */
 export const editItem = async (
   name: string,
   datePurchased: string,
   expiration: string,
   quantity: number,
-  fridge: Boolean,
-  freezer: Boolean,
-  inPantry: Boolean,
 ) => {
   try {
     // Update the item's data
@@ -86,9 +76,6 @@ export const editItem = async (
       datePurchased: datePurchased,
       expiration: expiration,
       quantity: quantity,
-      fridge: fridge,
-      freezer: freezer,
-      pantry: inPantry,
     };
     // Update the item
     const userId = await getUserId();
@@ -200,32 +187,6 @@ export const updateExpiration = async (name: string, expiration: string) => {
   } catch (error) {
     console.log(error);
     throw new updateExpirationError('Failed to update expiration date: ' + error,);
-  }
-};
-
-/*
- * Update the location of an item
- * @param name - name of the item, ie "milk", "eggs", etc
- * @param fridge - if the item is in the fridge
- * @param freezer - if the item is in the freezer
- * @param pantry - if the item is in the pantry
- */
-export const updateLocation = async (
-  name: string,
-  fridge: Boolean,
-  freezer: Boolean,
-  inPantry: Boolean,
-) => {
-  try {
-    const userId = await getUserId();
-    await firestore().collection('users').doc(userId).collection(pantry).doc(name).update({
-      fridge: fridge,
-      freezer: freezer,
-      pantry: inPantry,
-    });
-  } catch (error) {
-    console.log(error);
-    throw new updateLocationError('Failed to update location: ' + error);
   }
 };
 

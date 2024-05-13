@@ -28,6 +28,7 @@
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
     "@react-navigation/stack": "^6.3.20",
+    "axios": "^1.6.8",
     "bluebird": "^3.7.2",
     "firebase": "^10.9.0",
     "np": "^8.0.4",

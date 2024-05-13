@@ -6,9 +6,8 @@
 */
 
 import React, {useCallback, useEffect, useState} from 'react';
-import {View, Text, Button, TextInput, ImageBackground} from 'react-native';
+import {View, Text, Button, TextInput, Switch, ImageBackground} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-// Storage functions
 import {editItem, loadItem} from './PantryStorage';
 // This is for the route from the pantry screen
 import {
@@ -16,12 +15,8 @@ import {
   ParamListBase,
   RouteProp,
 } from '@react-navigation/native';
-// This is the snackbar
 import Snackbar from 'react-native-snackbar';
-// Import the styles
 import styles from './Styles.js';
-import { Background } from '@react-navigation/elements';
-
 
 // This is the route type
 type MyParamList = ParamListBase & {
@@ -42,10 +37,8 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
   const [quantity, setQuantity] = useState<string>('');
   const [datePurchased, setDatePurchased] = useState<Date>(new Date());
   const [expirationDate, setExpirationDate] = useState<Date>(new Date());
-  const [inRefrigerator, setInRefrigerator] = useState<boolean>(false);
-  const [inFreezer, setInFreezer] = useState<boolean>(false);
-  const [inPantry, setInPantry] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [noExpiration, setNoExpiration] = useState(false);
   // States for the date pickers
   const [showDatePickerPurchase, setShowDatePickerPurchase] = useState<boolean>(false);
   const [showDatePickerExpiration, setShowDatePickerExpiration] = useState<boolean>(false);
@@ -55,6 +48,8 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
     if (datePickerType === 'purchase') {
       setShowDatePickerPurchase(true);
     } else if (datePickerType === 'expiration') {
+      if (noExpiration) setNoExpiration(false);
+      setExpirationDate(new Date());
       setShowDatePickerExpiration(true);
     }
   };
@@ -70,9 +65,9 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
       setQuantity(item.quantity);
       setDatePurchased(new Date(item.datePurchased));
       setExpirationDate(new Date(item.expiration));
-      setInRefrigerator(item.fridge);
-      setInFreezer(item.freezer);
-      setInPantry(item.pantry);
+      if (item.expiration.toDateString() === 'Thu Dec 30 9999'){
+        setNoExpiration(true);
+      }
       // Handle the item data as needed
     } catch (error: any) {
       setErrorMessage(error.message);
@@ -84,23 +79,24 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
   }, [errorMessage, itemName]);
 
   const updateItem = async (): Promise<void> => {
+    if (!validateQuantity(quantity)) return;
+
     try {
       await editItem(
         itemName,
         datePurchased.toString(),
         expirationDate.toString(),
         quantity,
-        inRefrigerator,
-        inFreezer,
-        inPantry,
       );
       // Reset the input fields
       setDatePurchased(new Date());
       setExpirationDate(new Date());
       setQuantity('');
-      setInRefrigerator(false);
-      setInFreezer(false);
-      setInPantry(false);
+      Snackbar.show({
+        text: 'Item updated!',
+        duration: Snackbar.LENGTH_SHORT,
+      });
+      navigation.goBack();
     } catch (error: any) {
       console.log(error.message);
       setErrorMessage(error.message);
@@ -112,7 +108,7 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
   };
 
   // Number input validation
-  const validateQuantity = (inputText: any) => {
+  const validateQuantity = (inputText: any): boolean => {
     const number = parseInt(inputText, 10);
     if (isNaN(number)) {
       Snackbar.show({
@@ -121,6 +117,7 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
       });
       setQuantity('');
       setErrorMessage('Not a number');
+      return false;
     } else if (number < 0) {
       Snackbar.show({
         text: 'Please enter a positive number',
@@ -128,9 +125,11 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
       });
       setQuantity('');
       setErrorMessage('Negative number');
+      return false;
     } else {
       setErrorMessage('');
       setQuantity(inputText);
+      return true;
     }
   };
 
@@ -149,7 +148,7 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
         <TextInput
           keyboardType="numeric"
           placeholder="Enter a Quantity"
-          onChangeText={quantity => validateQuantity(quantity)}
+          onChangeText={quantity => setQuantity(quantity)}
           value={quantity}
           maxLength={5}
           style={styles.textBox2}
@@ -160,10 +159,21 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
           </Text>
         </View>
         <View style={styles.addTextContainer}>
-          <Text style={styles.status}>
-            Expires: {expirationDate.toDateString()}
-          </Text>
+          <Text>No Expiration</Text>
+            <Switch
+              value={noExpiration}
+              onValueChange={(value) => {
+                setNoExpiration(value);
+                if (value) setExpirationDate(new Date('9999-12-31')); 
+                else setExpirationDate(new Date());
+              }}
+            />
         </View>
+        {!noExpiration && (
+          <View style={styles.addTextContainer}>
+            <Text style={styles.status}>Expires: {expirationDate.toDateString()}</Text>
+          </View>
+        )}
         <View style={styles.buttonContainer2}>
           <Button
             title="Purchase Date"
@@ -203,45 +213,10 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
             />
           )}
         </View>
-        <View style={styles.addTextContainer}>
-          <Text style={styles.addText}>Location of {itemName}</Text>
-        </View>
-        <View style={styles.addTextContainer}>
-          <Text style={styles.addText}>
-            Refrigerator: {inRefrigerator ? 'Yes' : 'No'}
-          </Text>
-          <Text style={styles.addText}>
-            {'     '}
-            Freezer: {inFreezer ? 'Yes' : 'No'}
-          </Text>
-        </View>
-        <View style={styles.addTextContainer}>
-          <Text style={styles.addText}>Pantry: {inPantry ? 'Yes' : 'No'}</Text>
-        </View>
-        <Text>  </Text>
-        <View style={styles.buttonContainer2}>
-          <Text>  </Text>
-          <Button
-            title="Refrigerator"
-            color="blue"
-            onPress={() => setInRefrigerator(!inRefrigerator)}
-          />
-          <Text>          </Text>
-          <Button
-            title="Freezer"
-            color="purple"
-            onPress={() => setInFreezer(!inFreezer)} />
-          <Text>          </Text>
-          <Button
-            title="Pantry"
-            color="slategray"
-            onPress={() => setInPantry(!inPantry)}
-          />
-        </View>
         <View style={styles.buttonContainer3}>
           <Button
             color={'green'}
-            title="Edit Item"
+            title="Save"
             onPress={async () => {
               if (quantity === '0' || quantity === '') {
                 Snackbar.show({
@@ -250,11 +225,6 @@ const EditItem: React.FC<EditItemProps> = ({navigation, route}) => {
                 });
               } else {
                 await updateItem();
-                Snackbar.show({
-                  text: 'Item updated!',
-                  duration: Snackbar.LENGTH_SHORT,
-                });
-                navigation.goBack();
               }
             }}
           />
