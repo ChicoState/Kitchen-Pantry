@@ -58,12 +58,14 @@ const GroceryList = () => {
         transparent={true}
         visible={modalVisible}
         onRequestClose={handleCloseModal}
+        testID="modal"
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <TouchableOpacity
               style={styles.closeButton}
               onPress={handleCloseModal}
+              testID="close-button"
             >
               <Icon name="times" size={20} color="#333" />
             </TouchableOpacity>
@@ -72,6 +74,7 @@ const GroceryList = () => {
               value={foodItem}
               onChangeText={setFoodItem}
               style={styles.input}
+              testID="food-item-input"
             />
             <TextInput
               placeholder="Quantity (optional)"
@@ -79,6 +82,7 @@ const GroceryList = () => {
               onChangeText={setQuantity}
               style={styles.input}
               keyboardType="numeric"
+              testID="quantity-input"
             />
             <Button title="Add Item" onPress={handleAddItem} color="teal" />
           </View>
@@ -89,16 +93,19 @@ const GroceryList = () => {
         renderItem={({ item, index }) => (
           <View style={styles.itemContainer}>
             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-              <TouchableOpacity onPress={() => toggleCheckbox(index)}>
+              <TouchableOpacity onPress={() => toggleCheckbox(index)} testID={`checkbox-${index}`}>
                 <View style={styles.checkbox}>
                   {item.checked && <View style={styles.checkedBox} />}
                 </View>
               </TouchableOpacity>
-              <Text style={{ marginLeft: 10, flex: 1 }}>
+              <Text
+                style={[{ marginLeft: 10, flex: 1 }, item.checked && { textDecorationLine: 'line-through' }]}
+                testID={`item-text-${index}`}
+              >
                 {item.quantity ? `${item.quantity} ${item.name}` : item.name}
               </Text>
             </View>
-            <Button title="X" onPress={() => handleRemoveItem(index)} color="maroon" />
+            <Button title="X" onPress={() => handleRemoveItem(index)} color="maroon" testID={`remove-button-${index}`} />
           </View>
         )}
         keyExtractor={(_, index) => index.toString()}
@@ -112,6 +119,7 @@ const GroceryList = () => {
       <TouchableOpacity
         style={styles.addButton}
         onPress={() => setModalVisible(true)}
+        testID="add-button"
       >
         <Icon name="plus" size={24} color="#fff" />
       </TouchableOpacity>

@@ -13,7 +13,6 @@ import image1 from './Images/italy.jpg';
 import image2 from './Images/pantrypal.jpg';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 import auth from '@react-native-firebase/auth';
-import { getUserId } from './UserStorage';
 
 
 // This is the HomeScreen
@@ -34,9 +33,10 @@ const HomeScreen = ({ navigation }) => {
       source={image1}
       style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
     >
-      <TouchableOpacity onPress={handleSignOut} style={styles.signoutButton}>
+      <TouchableOpacity onPress={handleSignOut} style={styles.signoutButton} testID="signout-button">
         <Icon name="arrow-right-from-bracket" size={25} color="#ffffff" />
       </TouchableOpacity>
+
       <View style={styles.container}>
         <Image
           source={image2}
