@@ -34,35 +34,6 @@ const MealScreen = ({ navigation }) => {
         searchRecipes(searchQuery);
     };
 
-
-    //Manage the selected category
-    const [selectedCategory, setSelectedCategory] = useState(null);
-
-    //Filter meals by category
-    const filterMealsByCategory = (category) => {
-        // Return all meals if no category is selected
-        if (!category) return preCodedMeals;
-      
-        // Convert input category to lowercase for case-insensitive comparison
-        const lowerCaseCategory = category.toLowerCase();
-      
-        // Filter meals by category, ignoring case
-        return preCodedMeals.filter(meal => 
-          meal.categories.some(cat => cat.toLowerCase() === lowerCaseCategory)
-        );
-    };
-      
-
-    const CategoryButton = ({ category, setSelectedCategory }) => (
-        <TouchableOpacity onPress={() => setSelectedCategory(category)}>
-            <View style={styles.categoryButton}>
-                <Text style={{ color: 'white' }}>{category.toUpperCase()}</Text>
-            </View>
-        </TouchableOpacity>
-    );
-
-    const mealCategories = ['vegan', 'high protein', 'gluten free'];
-
     return (
             <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', paddingTop: 20 }}>
             <SearchComponent setSearchQuery={setSearchQuery} handleSearch={handleSearch} />

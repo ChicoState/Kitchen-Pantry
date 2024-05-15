@@ -1,11 +1,14 @@
-// jest.config.js
 module.exports = {
   preset: 'react-native',
+
+  setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+  testPathIgnorePatterns: ['/node_modules/', '/android/', '/ios/'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(react-native|@react-native|react-native-vector-icons|@react-native-firebase)/)',
+    'node_modules/(?!@react-native|react-native|@react-native-firebase|@react-navigation)'
+  ],
   transform: {
-    '^.+\\.(js|ts|tsx)$': require.resolve('babel-jest'),
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
-  "transformIgnorePatterns": [
-      "node_modules/(?!(react-native|@react-native|@react-navigation/elements)/)"
-    ]
-  
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node']
 };
